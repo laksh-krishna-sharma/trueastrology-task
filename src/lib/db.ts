@@ -1,14 +1,10 @@
 import { MongoClient, Db } from 'mongodb';
 
-const MONGODB_URI = process.env.DATABASE_URL || 'mongodb://localhost:27017/chatbot';
+const MONGODB_URI = process.env.DATABASE_URL!;
 const MONGODB_DB = 'chatbot';
 
 if (!MONGODB_URI) {
   throw new Error('Please define the DATABASE_URL environment variable inside .env');
-}
-
-if (!MONGODB_URI.includes('mongodb')) {
-  throw new Error('Invalid DATABASE_URL format. Must be a MongoDB connection string.');
 }
 
 interface GlobalMongo {
@@ -17,6 +13,7 @@ interface GlobalMongo {
 }
 
 declare global {
+  // allow global reuse in dev
   var mongo: GlobalMongo | undefined;
 }
 
@@ -32,25 +29,10 @@ async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
   }
 
   if (!cached.promise) {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const opts = {
+    cached.promise = MongoClient.connect(MONGODB_URI, {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
-      // SSL/TLS configuration - more permissive for serverless
-      ssl: true,
-      tls: true,
-      tlsAllowInvalidCertificates: isProduction,
-      tlsAllowInvalidHostnames: isProduction,
-      // Additional options for Vercel/serverless
-      retryWrites: true,
-      retryReads: true,
-      maxIdleTimeMS: 30000,
-    } as const;
-
-    console.log('Connecting to MongoDB...', isProduction ? '(production mode)' : '(development mode)');
-    cached.promise = MongoClient.connect(MONGODB_URI, opts);
+    });
   }
 
   try {
