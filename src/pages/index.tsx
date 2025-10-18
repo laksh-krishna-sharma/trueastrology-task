@@ -47,7 +47,6 @@ export default function Chat() {
       const data = await response.json();
       setMessages(data.messages || []);
     } catch (error) {
-      console.error('Failed to load chat history:', error);
     }
   };
 
@@ -75,7 +74,6 @@ export default function Chat() {
         alert(data.error);
       }
     } catch (error) {
-      console.error('Auth error:', error);
       alert('Authentication failed');
     }
   };

@@ -36,7 +36,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           await cacheSet(cacheKey, JSON.stringify(messages), 600);
         }
       } catch (redisError) {
-        console.warn('Redis unavailable, falling back to database:', redisError);
         messages = await prisma.message.findMany({
           where: {
             sessionId,
@@ -66,7 +65,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           await cacheSet(cacheKey, JSON.stringify(messages), 600);
         }
       } catch (redisError) {
-        console.warn('Redis unavailable, falling back to database:', redisError);
         messages = await prisma.message.findMany({
           where: {
             userId,
@@ -86,7 +84,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       })),
     });
   } catch (error) {
-    console.error('History API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

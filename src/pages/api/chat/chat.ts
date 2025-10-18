@@ -41,7 +41,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       sessionId,
     });
   } catch (error) {
-    console.error('Chat API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
