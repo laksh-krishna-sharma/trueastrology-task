@@ -2,6 +2,10 @@
 
 A sophisticated chatbot application built with Next.js, featuring a supervisor-agent architecture, user authentication, persistent storage, and real-time chat capabilities.
 
+## Live Demo
+
+- Deployment: https://trueastrology-task.vercel.app/
+
 ## Features
 
 - **Multi-Agent Architecture**: Supervisor agent routes queries to specialized agents (Tech, Math, General)
