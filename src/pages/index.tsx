@@ -32,14 +32,14 @@ export default function Chat() {
       setUser(JSON.parse(savedUser));
       const newSessionId = Date.now().toString();
       setSessionId(newSessionId);
-      loadChatHistory(newSessionId);
+      loadChatHistory();
     }
   }, []);
 
-  const loadChatHistory = async (sid: string) => {
+  const loadChatHistory = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/chat/history?sessionId=${sid}`, {
+      const response = await fetch('/api/chat/history', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -70,7 +70,7 @@ export default function Chat() {
         setUser(data.user);
         const newSessionId = Date.now().toString();
         setSessionId(newSessionId);
-        loadChatHistory(newSessionId);
+        loadChatHistory();
       } else {
         alert(data.error);
       }

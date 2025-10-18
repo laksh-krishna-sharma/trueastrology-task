@@ -13,18 +13,30 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const { sessionId } = req.query;
     const userId = req.user!.userId;
 
-    if (!sessionId || typeof sessionId !== 'string') {
-      return res.status(400).json({ error: 'sessionId is required' });
-    }
-
-    const cacheKey = `chat_history_${userId}_${sessionId}`;
     let messages;
+    let cacheKey;
 
-    try {
-      const cachedMessages = await cacheGet(cacheKey);
-      if (cachedMessages) {
-        messages = JSON.parse(cachedMessages);
-      } else {
+    if (sessionId && typeof sessionId === 'string') {
+      // Get messages for specific session
+      cacheKey = `chat_history_${userId}_${sessionId}`;
+      try {
+        const cachedMessages = await cacheGet(cacheKey);
+        if (cachedMessages) {
+          messages = JSON.parse(cachedMessages);
+        } else {
+          messages = await prisma.message.findMany({
+            where: {
+              sessionId,
+              userId,
+            },
+            orderBy: {
+              createdAt: 'asc',
+            },
+          });
+          await cacheSet(cacheKey, JSON.stringify(messages), 600);
+        }
+      } catch (redisError) {
+        console.warn('Redis unavailable, falling back to database:', redisError);
         messages = await prisma.message.findMany({
           where: {
             sessionId,
@@ -34,19 +46,36 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
             createdAt: 'asc',
           },
         });
-        await cacheSet(cacheKey, JSON.stringify(messages), 600);
       }
-    } catch (redisError) {
-      console.warn('Redis unavailable, falling back to database:', redisError);
-      messages = await prisma.message.findMany({
-        where: {
-          sessionId,
-          userId,
-        },
-        orderBy: {
-          createdAt: 'asc',
-        },
-      });
+    } else {
+      // Get all messages for user
+      cacheKey = `chat_history_${userId}_all`;
+      try {
+        const cachedMessages = await cacheGet(cacheKey);
+        if (cachedMessages) {
+          messages = JSON.parse(cachedMessages);
+        } else {
+          messages = await prisma.message.findMany({
+            where: {
+              userId,
+            },
+            orderBy: {
+              createdAt: 'asc',
+            },
+          });
+          await cacheSet(cacheKey, JSON.stringify(messages), 600);
+        }
+      } catch (redisError) {
+        console.warn('Redis unavailable, falling back to database:', redisError);
+        messages = await prisma.message.findMany({
+          where: {
+            userId,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        });
+      }
     }
 
     res.status(200).json({
