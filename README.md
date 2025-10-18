@@ -43,9 +43,6 @@ See [Environment Variables](#environment-variables) section below for configurat
 
 ### 4. Database Setup
 
-#### Option A: Local MongoDB (Recommended for Development)
-
-
 **Push Database Schema**:
 ```bash
 bunx prisma generate
