@@ -46,7 +46,7 @@ export default function Chat() {
       });
       const data = await response.json();
       setMessages(data.messages || []);
-    } catch (error) {
+    } catch {
     }
   };
 
@@ -73,7 +73,7 @@ export default function Chat() {
       } else {
         alert(data.error);
       }
-    } catch (error) {
+    } catch {
       alert('Authentication failed');
     }
   };

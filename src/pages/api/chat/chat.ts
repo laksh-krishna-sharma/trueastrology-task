@@ -40,7 +40,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       response: response || 'Sorry, I couldn\'t generate a response.',
       sessionId,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 }

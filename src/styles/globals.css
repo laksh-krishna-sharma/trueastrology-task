@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+html, body, #__next {
+  height: 100%;
+}
+
+/* Custom small tweaks */
+.scrollbar-hide::-webkit-scrollbar { display: none; }

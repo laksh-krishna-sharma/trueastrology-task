@@ -35,7 +35,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           });
           await cacheSet(cacheKey, JSON.stringify(messages), 600);
         }
-      } catch (redisError) {
+      } catch {
         messages = await prisma.message.findMany({
           where: {
             sessionId,
@@ -64,7 +64,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           });
           await cacheSet(cacheKey, JSON.stringify(messages), 600);
         }
-      } catch (redisError) {
+      } catch {
         messages = await prisma.message.findMany({
           where: {
             userId,
@@ -83,7 +83,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         createdAt: msg.createdAt,
       })),
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
