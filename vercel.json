@@ -1,0 +1,13 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "functions": {
+    "src/pages/api/**/*.ts": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
