@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectToDatabase from '../../../lib/db';
+import { prisma } from '../../../lib/prisma';
 import { comparePassword, generateToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,9 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const { db } = await connectToDatabase();
-
-    const user = await db.collection('User').findOne({ email });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -28,18 +28,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user.id);
 
     res.status(200).json({
       user: {
-        id: user._id.toString(),
+        id: user.id,
         fullName: user.fullName,
         email: user.email,
       },
       token,
     });
-  } catch (error) {
-    console.error('Login error:', error);
+  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 }

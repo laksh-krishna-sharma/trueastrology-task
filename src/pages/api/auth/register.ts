@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { ObjectId } from 'mongodb';
-import connectToDatabase from '../../../lib/db';
+import { prisma } from '../../../lib/prisma';
 import { hashPassword, generateToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,10 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const { db } = await connectToDatabase();
-
-    // Check if user already exists
-    const existingUser = await db.collection('User').findOne({ email });
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
@@ -26,29 +24,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const hashedPassword = await hashPassword(password);
 
-    // Create new user
-    const user = {
-      _id: new ObjectId(),
-      fullName,
-      email,
-      password: hashedPassword,
-      createdAt: new Date(),
-    };
+    const user = await prisma.user.create({
+      data: {
+        fullName,
+        email,
+        password: hashedPassword,
+      },
+    });
 
-    await db.collection('User').insertOne(user);
-
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user.id);
 
     res.status(201).json({
       user: {
-        id: user._id.toString(),
+        id: user.id,
         fullName: user.fullName,
         email: user.email,
       },
       token,
     });
-  } catch (error) {
-    console.error('Registration error:', error);
+  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
