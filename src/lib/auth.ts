@@ -4,7 +4,9 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
+  // Use fewer rounds in production for faster registration
+  const rounds = process.env.NODE_ENV === 'production' ? 8 : 10;
+  return bcrypt.hash(password, rounds);
 }
 
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
