@@ -13,7 +13,6 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Generate a session ID if not exists
     const existingSessionId = localStorage.getItem('chatSessionId');
     if (existingSessionId) {
       setSessionId(existingSessionId);
@@ -42,7 +41,6 @@ export default function Chat() {
     const userMessage = input;
     setInput('');
 
-    // Add user message to UI
     const newMessage: Message = {
       role: 'user',
       content: userMessage,
@@ -64,7 +62,6 @@ export default function Chat() {
 
       const data = await response.json();
 
-      // Add assistant response to UI
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.response,
@@ -73,10 +70,9 @@ export default function Chat() {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Failed to send message:', error);
-      // Add error message to UI
       const errorMessage: Message = {
         role: 'assistant',
-        content: 'Sorry, there was an error processing your message.',
+        content: 'Sorry, I encountered an error. Please try again.',
         createdAt: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMessage]);

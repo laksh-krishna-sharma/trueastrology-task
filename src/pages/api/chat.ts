@@ -14,7 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Message and sessionId are required' });
     }
 
-    // Store user message
     await prisma.message.create({
       data: {
         role: 'user',
@@ -23,10 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // Run the LangGraph flow
     const response = await runChatGraph(message);
 
-    // Store assistant response
     await prisma.message.create({
       data: {
         role: 'assistant',

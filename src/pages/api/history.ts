@@ -31,11 +31,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             createdAt: 'asc',
           },
         });
-        // Cache for 10 minutes
         await cacheSet(cacheKey, JSON.stringify(messages), 600);
       }
     } catch (redisError) {
-      // Fallback to DB only if Redis fails
       console.warn('Redis unavailable, falling back to database:', redisError);
       messages = await prisma.message.findMany({
         where: {
