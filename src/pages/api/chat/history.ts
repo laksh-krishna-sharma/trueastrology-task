@@ -1,21 +1,23 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../lib/prisma';
-import { cacheGet, cacheSet } from '../../lib/redis';
-import { Message } from '../../generated/prisma';
+import { NextApiResponse } from 'next';
+import { prisma } from '../../../lib/prisma';
+import { cacheGet, cacheSet } from '../../../lib/redis';
+import { Message } from '../../../generated/prisma';
+import { withAuth, AuthenticatedRequest } from '../../../lib/middleware';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { sessionId } = req.query;
+    const userId = req.user!.userId;
 
     if (!sessionId || typeof sessionId !== 'string') {
       return res.status(400).json({ error: 'sessionId is required' });
     }
 
-    const cacheKey = `chat_history_${sessionId}`;
+    const cacheKey = `chat_history_${userId}_${sessionId}`;
     let messages;
 
     try {
@@ -26,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         messages = await prisma.message.findMany({
           where: {
             sessionId,
+            userId,
           },
           orderBy: {
             createdAt: 'asc',
@@ -38,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       messages = await prisma.message.findMany({
         where: {
           sessionId,
+          userId,
         },
         orderBy: {
           createdAt: 'asc',
@@ -57,3 +61,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default withAuth(handler);
