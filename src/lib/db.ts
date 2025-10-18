@@ -32,19 +32,33 @@ async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
   }
 
   if (!cached.promise) {
+    const isProduction = process.env.NODE_ENV === 'production';
     const opts = {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-    };
+      connectTimeoutMS: 10000,
+      // SSL/TLS configuration - more permissive for serverless
+      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: isProduction,
+      tlsAllowInvalidHostnames: isProduction,
+      // Additional options for Vercel/serverless
+      retryWrites: true,
+      retryReads: true,
+      maxIdleTimeMS: 30000,
+    } as const;
 
+    console.log('Connecting to MongoDB...', isProduction ? '(production mode)' : '(development mode)');
     cached.promise = MongoClient.connect(MONGODB_URI, opts);
   }
 
   try {
     cached.conn = await cached.promise;
+    console.log('MongoDB connected successfully');
   } catch (e) {
     cached.promise = null;
+    console.error('MongoDB connection failed:', e);
     throw e;
   }
 
