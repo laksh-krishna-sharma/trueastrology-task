@@ -133,6 +133,8 @@ The chatbot uses a **supervisor-agent pattern**:
 3. **Math Agent**: Processes mathematical problems and calculations
 4. **General Agent**: Handles general conversation and miscellaneous queries
 
+![Agent Architecture](./public/agent.svg)
+
 ### Data Flow
 
 ```
