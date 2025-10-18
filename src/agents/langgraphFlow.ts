@@ -11,8 +11,8 @@ const StateSchema = z.object({
 type State = z.infer<typeof StateSchema>;
 
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-1.5-flash",
-  apiKey: process.env.GOOGLE_API_KEY,
+  model: "gemini-2.5-flash",
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
 function supervisor(state: State) {
@@ -29,12 +29,7 @@ async function techAgent(state: State) {
 }
 
 async function mathAgent(state: State) {
-  try {
-    const sanitized = state.input.replace(/[^-()\d/*+.]/g, "");
-    const result = eval(sanitized);
-    if (!isNaN(result)) return { output: `Answer: ${result}` };
-  } catch {}
-  const prompt = `You are a math assistant. Solve:\nQuestion: ${state.input}`;
+  const prompt = `You are a math assistant. Solve this mathematical problem step by step:\nQuestion: ${state.input}\n\nProvide a clear, step-by-step solution.`;
   const response = await model.invoke(prompt);
   return { output: response.content as string };
 }
