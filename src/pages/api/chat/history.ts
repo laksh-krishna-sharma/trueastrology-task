@@ -1,8 +1,17 @@
 import { NextApiResponse } from 'next';
-import { prisma } from '../../../lib/prisma';
+import { ObjectId } from 'mongodb';
+import connectToDatabase from '../../../lib/db';
 import { cacheGet, cacheSet } from '../../../lib/redis';
-import { Message } from '../../../generated/prisma';
 import { withAuth, AuthenticatedRequest } from '../../../lib/middleware';
+
+interface Message {
+  _id: ObjectId;
+  role: string;
+  content: string;
+  sessionId: string;
+  userId: ObjectId;
+  createdAt: Date;
+}
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,7 +22,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const { sessionId } = req.query;
     const userId = req.user!.userId;
 
-    let messages;
+    const { db } = await connectToDatabase();
+    let messages: Message[];
     let cacheKey;
 
     if (sessionId && typeof sessionId === 'string') {
@@ -24,27 +34,19 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         if (cachedMessages) {
           messages = JSON.parse(cachedMessages);
         } else {
-          messages = await prisma.message.findMany({
-            where: {
-              sessionId,
-              userId,
-            },
-            orderBy: {
-              createdAt: 'asc',
-            },
-          });
+          const result = await db.collection('Message').find({
+            sessionId,
+            userId: new ObjectId(userId),
+          }).sort({ createdAt: 1 }).toArray();
+          messages = result as Message[];
           await cacheSet(cacheKey, JSON.stringify(messages), 600);
         }
       } catch {
-        messages = await prisma.message.findMany({
-          where: {
-            sessionId,
-            userId,
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        });
+        const result = await db.collection('Message').find({
+          sessionId,
+          userId: new ObjectId(userId),
+        }).sort({ createdAt: 1 }).toArray();
+        messages = result as Message[];
       }
     } else {
       // Get all messages for user
@@ -54,25 +56,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         if (cachedMessages) {
           messages = JSON.parse(cachedMessages);
         } else {
-          messages = await prisma.message.findMany({
-            where: {
-              userId,
-            },
-            orderBy: {
-              createdAt: 'asc',
-            },
-          });
+          const result = await db.collection('Message').find({
+            userId: new ObjectId(userId),
+          }).sort({ createdAt: 1 }).toArray();
+          messages = result as Message[];
           await cacheSet(cacheKey, JSON.stringify(messages), 600);
         }
       } catch {
-        messages = await prisma.message.findMany({
-          where: {
-            userId,
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        });
+        const result = await db.collection('Message').find({
+          userId: new ObjectId(userId),
+        }).sort({ createdAt: 1 }).toArray();
+        messages = result as Message[];
       }
     }
 
@@ -83,9 +77,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         createdAt: msg.createdAt,
       })),
     });
-  } catch {
+  } catch (error) {
+    console.error('History error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
-
-export default withAuth(handler);
+}export default withAuth(handler);

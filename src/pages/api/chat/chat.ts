@@ -1,6 +1,7 @@
 import { NextApiResponse } from 'next';
+import { ObjectId } from 'mongodb';
 import { runChatGraph } from '../../../agents/langgraphFlow';
-import { prisma } from '../../../lib/prisma';
+import connectToDatabase from '../../../lib/db';
 import { withAuth, AuthenticatedRequest } from '../../../lib/middleware';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
@@ -16,31 +17,36 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Message and sessionId are required' });
     }
 
-    await prisma.message.create({
-      data: {
-        role: 'user',
-        content: message,
-        sessionId,
-        userId,
-      },
+    const { db } = await connectToDatabase();
+
+    // Save user message
+    await db.collection('Message').insertOne({
+      _id: new ObjectId(),
+      role: 'user',
+      content: message,
+      sessionId,
+      userId: new ObjectId(userId),
+      createdAt: new Date(),
     });
 
     const response = await runChatGraph(message);
 
-    await prisma.message.create({
-      data: {
-        role: 'assistant',
-        content: response || 'Sorry, I couldn\'t generate a response.',
-        sessionId,
-        userId,
-      },
+    // Save assistant message
+    await db.collection('Message').insertOne({
+      _id: new ObjectId(),
+      role: 'assistant',
+      content: response || 'Sorry, I couldn\'t generate a response.',
+      sessionId,
+      userId: new ObjectId(userId),
+      createdAt: new Date(),
     });
 
     res.status(200).json({
       response: response || 'Sorry, I couldn\'t generate a response.',
       sessionId,
     });
-  } catch {
+  } catch (error) {
+    console.error('Chat error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
