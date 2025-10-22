@@ -12,7 +12,7 @@ type State = z.infer<typeof StateSchema>;
 
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY!,
 });
 
 function supervisor(state: State) {
@@ -40,20 +40,49 @@ async function generalAgent(state: State) {
   return { output: response.content as string };
 }
 
+function shouldContinue(state: State) {
+  return state.output ? "end" : "continue";
+}
+
 const workflow = new StateGraph(StateSchema)
   .addNode("supervisor", supervisor)
   .addNode("tech", techAgent)
   .addNode("math", mathAgent)
   .addNode("general", generalAgent)
   .addEdge(START, "supervisor")
-  .addConditionalEdges("supervisor", (state: State) => state.agent!, {
-    tech: "tech",
-    math: "math",
-    general: "general",
-  })
-  .addEdge("tech", END)
-  .addEdge("math", END)
-  .addEdge("general", END);
+  .addConditionalEdges(
+    "supervisor",
+    (state: State) => state.agent ?? "general",
+    {
+      tech: "tech",
+      math: "math",
+      general: "general",
+    }
+  )
+  .addConditionalEdges(
+    "math",
+    shouldContinue,
+    {
+        continue: "supervisor",
+        end: END,
+    }
+  )
+  .addConditionalEdges(
+    "tech",
+    shouldContinue,
+    {
+        continue: "supervisor",
+        end: END,
+    }
+  )
+  .addConditionalEdges(
+    "general",
+    shouldContinue,
+    {
+        continue: "supervisor",
+        end: END,
+    }
+  )
 
 export const chatGraph = workflow.compile();
 
