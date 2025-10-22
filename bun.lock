@@ -10,6 +10,7 @@
         "@langchain/core": "^1.0.1",
         "@langchain/google-genai": "^1.0.0",
         "@langchain/langgraph": "^1.0.0",
+        "@langchain/langgraph-supervisor": "^1.0.0",
         "@prisma/client": "^6.17.1",
         "@tailwindcss/typography": "^0.5.19",
         "@types/bcryptjs": "^3.0.0",
@@ -161,6 +162,8 @@
     "@langchain/langgraph-checkpoint": ["@langchain/langgraph-checkpoint@1.0.0", "", { "dependencies": { "uuid": "^10.0.0" }, "peerDependencies": { "@langchain/core": "^1.0.1" } }, "sha512-xrclBGvNCXDmi0Nz28t3vjpxSH6UYx6w5XAXSiiB1WEdc2xD2iY/a913I3x3a31XpInUW/GGfXXfePfaghV54A=="],
 
     "@langchain/langgraph-sdk": ["@langchain/langgraph-sdk@1.0.0", "", { "dependencies": { "p-queue": "^6.6.2", "p-retry": "4", "uuid": "^9.0.0" }, "peerDependencies": { "@langchain/core": "^1.0.1", "react": "^18 || ^19", "react-dom": "^18 || ^19" }, "optionalPeers": ["@langchain/core", "react", "react-dom"] }, "sha512-g25ti2W7Dl5wUPlNK+0uIGbeNFqf98imhHlbdVVKTTkDYLhi/pI1KTgsSSkzkeLuBIfvt2b0q6anQwCs7XBlbw=="],
+
+    "@langchain/langgraph-supervisor": ["@langchain/langgraph-supervisor@1.0.0", "", { "dependencies": { "uuid": "^10.0.0", "zod": "^3.25.32" }, "peerDependencies": { "@langchain/core": "^1.0.1", "@langchain/langgraph": "^0.2.72 || ^0.3.0 || ^0.4.0 || ^1.0.0-alpha.5" } }, "sha512-//99DWfb45/8XHiy2ijc2oVqgxVLcjNeQqN2wjqEOt+zWTe++V5a+0Q+40lPEyrM6oF9q7tQusWPvW2YnE8obg=="],
 
     "@langchain/openai": ["@langchain/openai@1.0.0", "", { "dependencies": { "js-tiktoken": "^1.0.12", "openai": "^6.3.0", "zod": "^3.25.76 || ^4" }, "peerDependencies": { "@langchain/core": "^1.0.0" } }, "sha512-olKEUIjb3HBOiD/NR056iGJz4wiN6HhQ/u65YmGWYadWWoKOcGwheBw/FE0x6SH4zDlI3QmP+vMhuQoaww19BQ=="],
 
@@ -1313,6 +1316,8 @@
     "@langchain/google-genai/uuid": ["uuid@11.1.0", "", { "bin": { "uuid": "dist/esm/bin/uuid" } }, "sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A=="],
 
     "@langchain/langgraph-sdk/uuid": ["uuid@9.0.1", "", { "bin": { "uuid": "dist/bin/uuid" } }, "sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA=="],
+
+    "@langchain/langgraph-supervisor/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "@tailwindcss/oxide-wasm32-wasi/@emnapi/core": ["@emnapi/core@1.5.0", "", { "dependencies": { "@emnapi/wasi-threads": "1.1.0", "tslib": "^2.4.0" }, "bundled": true }, "sha512-sbP8GzB1WDzacS8fgNPpHlp6C9VZe+SJP3F90W9rLemaQj2PzIuTEl1qDOYQf58YIpyjViI24y9aPWCjEzY2cg=="],
 
