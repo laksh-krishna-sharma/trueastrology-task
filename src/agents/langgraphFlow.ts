@@ -12,7 +12,7 @@ type State = z.infer<typeof StateSchema>;
 
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
-  apiKey: "AIzaSyA-wIZucQVETnsD-XZSf3j50Fs5hytnCQ0",
+  apiKey: process.env.GEMINI_API_KEY!,
 });
 
 function supervisor(state: State) {
