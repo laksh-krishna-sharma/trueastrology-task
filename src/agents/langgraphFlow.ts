@@ -179,11 +179,11 @@ function buildSegments(input: string): Segment[] {
   }));
 }
 
-function supervisor(state: State) {
+async function supervisor(state: State) {
   const input = state.input;
   const existingSegments = state.segments;
   const segments = existingSegments ?? buildSegments(input);
-  const responses = state.responses ?? [];
+  const existingResponses = state.responses ?? [];
 
   if (!existingSegments) {
     console.log(`(Supervisor) Segmented input into ${segments.length} task(s).`);
@@ -194,40 +194,55 @@ function supervisor(state: State) {
     });
   }
 
-  const nextIndex = responses.length;
+  if (existingResponses.length >= segments.length) {
+    const finalOutput = existingResponses
+      .map((entry) => `[${entry.agent.toUpperCase()}]\n${entry.text}`)
+      .join("\n\n");
 
-  if (nextIndex >= segments.length) {
-    const finalOutput =
-      responses.length > 0
-        ? responses
-            .map((entry) => `[${entry.agent.toUpperCase()}]\n${entry.text}`)
-            .join("\n\n")
-        : state.output ?? "";
     console.log("[Supervisor] All segments handled. Finalizing conversation.");
     return {
       segments,
-      responses,
+      responses: existingResponses,
       output: finalOutput,
       agent: "end",
       task: undefined,
-      currentSegmentIndex: nextIndex,
+      currentSegmentIndex: segments.length,
     };
   }
 
-  const nextSegment = segments[nextIndex]!;
-  console.log(
-    `[Supervisor] Routing to agent: ${nextSegment.agent} (segment ${nextIndex + 1}/${segments.length})`
-  );
-  console.log(`[Supervisor] Segment text: ${nextSegment.text}`);
+  console.log(`[Supervisor] Dispatching ${segments.length} agents in parallel...`);
+
+  const agentTasks = segments.map(async (segment, idx) => {
+    console.log(
+      `[Supervisor] Routing to agent: ${segment.agent} (segment ${idx + 1}/${segments.length})`
+    );
+    console.log(`[Supervisor] Segment text: ${segment.text}`);
+
+    if (segment.agent === "math") return await mathAgent({ ...state, task: segment.text });
+    if (segment.agent === "tech") return await techAgent({ ...state, task: segment.text });
+    if (segment.agent === "general") return await generalAgent({ ...state, task: segment.text });
+  });
+
+  const results = await Promise.all(agentTasks);
+
+  const combinedResponses = results.flatMap((r) => r?.responses ?? []);
+
+  console.log("[Supervisor] All agents finished execution.");
+
+  const finalOutput = combinedResponses
+    .map((entry) => `[${entry.agent.toUpperCase()}]\n${entry.text}`)
+    .join("\n\n");
 
   return {
     segments,
-    responses,
-    agent: nextSegment.agent,
-    task: nextSegment.text,
-    currentSegmentIndex: nextIndex,
+    responses: combinedResponses,
+    output: finalOutput,
+    agent: "end",
+    task: undefined,
+    currentSegmentIndex: segments.length,
   };
 }
+
 
 async function techAgent(state: State) {
   const question = state.task ?? state.input;
